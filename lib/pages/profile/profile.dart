@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// Définition de la classe ProfilePage comme un widget avec état
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
 
@@ -15,7 +14,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  // Contrôleurs et variables pour gérer l'état de la page
   final TextEditingController _nameController = TextEditingController();
   File? _profileImage;
   File? _coverImage;
@@ -25,13 +23,11 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    // Initialisation du contrôleur de nom avec le nom d'utilisateur actuel
     _nameController.text = FirebaseAuth.instance.currentUser?.displayName ?? "";
-    // Chargement de l'URL de l'image de couverture
     _loadCoverImageUrl();
   }
 
-  // Fonction pour charger l'URL de l'image de couverture depuis Firestore
+  // Garder toutes les fonctions existantes identiques...
   Future<void> _loadCoverImageUrl() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId != null) {
@@ -44,7 +40,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // Fonction pour mettre à jour la photo de profil
   Future<void> _updateProfilePicture() async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -56,7 +51,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // Fonction pour mettre à jour l'image de couverture
   Future<void> _updateCoverPicture() async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -68,7 +62,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // Fonction pour télécharger une image sur Firebase Storage
   Future<void> _uploadImage(File image, String path, bool isProfilePicture) async {
     try {
       final ref = FirebaseStorage.instance.ref().child(path);
@@ -90,19 +83,14 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // Fonction pour mettre à jour le nom d'affichage de l'utilisateur
   Future<void> _updateDisplayName() async {
     if (_nameController.text.isNotEmpty) {
       try {
-        // Mise à jour du nom dans Firebase Auth
         await FirebaseAuth.instance.currentUser!.updateDisplayName(_nameController.text);
-
-        // Mise à jour du nom dans Firestore
         await FirebaseFirestore.instance
             .collection('users')
             .doc(FirebaseAuth.instance.currentUser!.uid)
             .set({'displayName': _nameController.text}, SetOptions(merge: true));
-
         setState(() {
           _isEditingName = false;
         });
@@ -115,14 +103,25 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text("Profile"),
+        elevation: 0,
+        backgroundColor: Colors.white,
+        title: Text(
+          "Profil",
+          style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
-          IconButton(
-            onPressed: () {
-              signOut(context);
-            },
-            icon: Icon(Icons.logout),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: IconButton(
+              onPressed: () => signOut(context),
+              icon: Icon(Icons.logout, color: Colors.red[400]),
+              tooltip: 'Déconnexion',
+            ),
           ),
         ],
       ),
@@ -130,102 +129,255 @@ class _ProfilePageState extends State<ProfilePage> {
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+              ),
+            );
           }
           final user = snapshot.data!;
           return SafeArea(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // Widget pour afficher l'image de couverture et la photo de profil
-                  Stack(
-                    children: [
-                      // Image de couverture
-                      Container(
-                        height: 200,
-                        width: double.infinity,
-                        child: _coverImage != null
-                            ? Image.file(_coverImage!, fit: BoxFit.cover)
-                            : (_coverImageUrl != null
-                            ? Image.network(_coverImageUrl!, fit: BoxFit.cover)
-                            : Container(color: Colors.grey)),
-                      ),
-                      // Bouton pour modifier l'image de couverture
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: IconButton(
-                          icon: Icon(Icons.camera_alt),
-                          onPressed: _updateCoverPicture,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          offset: Offset(0, 2),
+                          blurRadius: 6.0,
                         ),
-                      ),
-                      // Photo de profil
-                      Positioned(
-                        bottom: 0,
-                        left: 20,
-                        child: GestureDetector(
-                          onTap: _updateProfilePicture,
-                          child: CircleAvatar(
-                            radius: 60,
-                            backgroundImage: _profileImage != null
-                                ? FileImage(_profileImage!)
-                                : NetworkImage(user.photoURL ?? "") as ImageProvider,
-                            child: Align(
-                              alignment: Alignment.bottomRight,
-                              child: CircleAvatar(
-                                backgroundColor: Colors.white,
-                                radius: 18,
-                                child: Icon(Icons.camera_alt, size: 18, color: Colors.grey),
+                      ],
+                    ),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      alignment: Alignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            // Image de couverture avec gradient
+                            Container(
+                              height: 200,
+                              width: double.infinity,
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  _coverImage != null
+                                      ? Image.file(_coverImage!, fit: BoxFit.cover)
+                                      : (_coverImageUrl != null
+                                      ? Image.network(_coverImageUrl!, fit: BoxFit.cover)
+                                      : Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          Colors.blue[300]!,
+                                          Colors.blue[600]!,
+                                        ],
+                                      ),
+                                    ),
+                                  )),
+                                  // Gradient overlay
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.transparent,
+                                          Colors.black.withOpacity(0.4),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 60), // Espace pour la photo de profil
+                          ],
+                        ),
+                        // Bouton de modification de la couverture
+                        Positioned(
+                          top: 150,
+                          right: 16,
+                          child: Material(
+                            elevation: 4,
+                            borderRadius: BorderRadius.circular(30),
+                            child: InkWell(
+                              onTap: _updateCoverPicture,
+                              borderRadius: BorderRadius.circular(30),
+                              child: Container(
+                                padding: EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: Icon(Icons.camera_alt,
+                                  size: 20,
+                                  color: Colors.grey[700],
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  // Widget pour afficher et modifier le nom d'utilisateur
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _isEditingName
-                              ? TextField(
-                            controller: _nameController,
-                            decoration: InputDecoration(
-                              labelText: 'Display Name',
+                        // Photo de profil
+                        Positioned(
+                          top: 150,
+                          child: GestureDetector(
+                            onTap: _updateProfilePicture,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 4,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    blurRadius: 10,
+                                    color: Colors.black26,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                              child: CircleAvatar(
+                                radius: 50,
+                                backgroundColor: Colors.white,
+                                backgroundImage: _profileImage != null
+                                    ? FileImage(_profileImage!)
+                                    : (user.photoURL != null
+                                    ? NetworkImage(user.photoURL!) as ImageProvider
+                                    : null),
+                                child: Stack(
+                                  children: [
+                                    if (user.photoURL == null && _profileImage == null)
+                                      Icon(Icons.person, size: 50, color: Colors.grey[400]),
+                                    Positioned(
+                                      bottom: 0,
+                                      right: 0,
+                                      child: Container(
+                                        padding: EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: Colors.white,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          Icons.camera_alt,
+                                          size: 14,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          )
-                              : Text(
-                            user.displayName ?? "",
-                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                           ),
-                        ),
-                        IconButton(
-                          icon: Icon(_isEditingName ? Icons.check : Icons.edit),
-                          onPressed: () {
-                            if (_isEditingName) {
-                              _updateDisplayName();
-                            } else {
-                              setState(() {
-                                _isEditingName = true;
-                              });
-                            }
-                          },
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(height: 20),
-                  // Bouton pour naviguer vers la page de publication
-                  OutlinedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, "/publier");
-                    },
-                    child: Text(
-                      "Publier",
-                      style: TextStyle(color: Colors.blue),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                    child: Column(
+                      children: [
+                        // Section nom d'utilisateur
+                        Container(
+                          padding: EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _isEditingName
+                                    ? TextField(
+                                  controller: _nameController,
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  decoration: InputDecoration(
+                                    labelText: 'Nom d\'affichage',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                )
+                                    : Text(
+                                  user.displayName ?? "Utilisateur",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  _isEditingName ? Icons.check_circle : Icons.edit,
+                                  color: Colors.blue,
+                                  size: 28,
+                                ),
+                                onPressed: () {
+                                  if (_isEditingName) {
+                                    _updateDisplayName();
+                                  } else {
+                                    setState(() {
+                                      _isEditingName = true;
+                                    });
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 24),
+                        // Bouton Publier
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.pushNamed(context, "/publier");
+                            },
+                            icon: Icon(Icons.add_photo_alternate),
+                            label: Text(
+                              "Publier",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: Colors.blue,
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -237,7 +389,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Fonction pour déconnecter l'utilisateur
   Future<void> signOut(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
