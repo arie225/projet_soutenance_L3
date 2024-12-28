@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pay_and_buy/pages/home/home.dart';
 import 'package:pay_and_buy/pages/login.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:pay_and_buy/pages/message.dart';
+import 'package:pay_and_buy/pages/discussion/message.dart';
 import 'package:pay_and_buy/pages/profile/profile.dart';
 import 'package:pay_and_buy/pages/profile/publication.dart';
 import 'package:pay_and_buy/service/authservice.dart';

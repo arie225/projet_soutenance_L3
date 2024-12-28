@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pay_and_buy/pages/home/affichage.dart';
 import 'package:pay_and_buy/pages/home/homeappbar.dart';
-import 'package:pay_and_buy/pages/message.dart';
+import 'package:pay_and_buy/pages/discussion/message.dart';
 import 'package:pay_and_buy/pages/profile/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:pay_and_buy/shareui/bottomappbar.dart';
