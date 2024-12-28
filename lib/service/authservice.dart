@@ -1,33 +1,34 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-
+import 'post.dart'; // Importez votre FirebaseService
 
 class AuthServices {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  //connnection avec google
   Future<UserCredential> signInWithGoogle() async {
-    //déclencer le flux d'authentification
-    final googleuser = await _googleSignIn.signIn();
+    final googleUser = await _googleSignIn.signIn();
+    if (googleUser == null) throw Exception('Connexion Google annulée');
 
-    //obtenir les details d'autorisatio de la demande
-    final googleauth = await googleuser!.authentication;
-
-    //créer un nouvel identifiant
+    final googleAuth = await googleUser.authentication;
     final credential = GoogleAuthProvider.credential(
-        accessToken: googleauth.accessToken,
-        idToken: googleauth.idToken
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken
     );
 
-    //une fois connecter renvoyer l'identifient de l'utilisateur
-    return await _auth.signInWithCredential(credential);
+    // Connecter l'utilisateur
+    final userCredential = await _auth.signInWithCredential(credential);
+
+    // Sauvegarder les informations de l'utilisateur dans Firestore
+    if (userCredential.user != null) {
+      await FirebaseService.saveUserInfo(userCredential.user!);
+    }
+
+    return userCredential;
   }
 
-//pour obtenir l'etat de l'utilisateur en temps réel
   Stream<User?> get user => _auth.authStateChanges();
 
-//déconnexion
   Future<void> signOut() async {
     try {
       await _auth.signOut();
@@ -37,5 +38,4 @@ class AuthServices {
       throw e;
     }
   }
-
 }

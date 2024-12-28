@@ -7,6 +7,8 @@ import 'package:pay_and_buy/pages/profile/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:pay_and_buy/shareui/bottomappbar.dart';
 
+import '../discussion/ChatListPage.dart';
+
 
 class HomePage extends StatefulWidget {
   final User? user;
@@ -21,7 +23,7 @@ class _HomePageState extends State<HomePage> {
 
   static List<Widget> _widgetOptions = <Widget>[
     affichage(),
-    MessagePage(),
+    ChatListPage(),
     ProfilePage()
   ];
 

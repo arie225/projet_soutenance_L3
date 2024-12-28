@@ -49,9 +49,16 @@ class MyApp extends StatelessWidget {
       initialRoute: "/",
       routes: {
         "/": (context) => Wrapper(),
+        "/login":(context) => LoginPage(),
         "/profile": (context) => ProfilePage(),
         "/home": (context) => HomePage(),
-        "/message": (context) => MessagePage(),
+        '/message': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return MessagePage(
+            chatId: args['chatId'],
+            otherUserName: args['otherUserName'],
+          );
+        },
         "/publier": (context) => PublicationPage()
       },
     );

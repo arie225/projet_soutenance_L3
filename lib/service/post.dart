@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class FirebaseService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static final FirebaseStorage _storage = FirebaseStorage.instance;
+  static final FirebaseAuth _auth = FirebaseAuth.instance;
 
   static Future<void> createPost({
     required String titre,
@@ -13,6 +15,21 @@ class FirebaseService {
     required String categorie,
     required List<File> images,
   }) async {
+    // Vérifier que l'utilisateur est connecté
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('Utilisateur non connecté');
+
+    // Récupérer les informations détaillées de l'utilisateur depuis Firestore
+    final userDoc = await _firestore.collection('users').doc(user.uid).get();
+
+    // Préparer les informations de l'utilisateur
+    final userName = userDoc.exists
+        ? userDoc.get('displayName')
+        : user.displayName ?? 'Utilisateur';
+    final userPhoto = userDoc.exists
+        ? userDoc.get('photoURL')
+        : user.photoURL ?? '';
+
     List<String> imageUrls = [];
 
     // Télécharge chaque image et récupère son URL
@@ -23,7 +40,7 @@ class FirebaseService {
       imageUrls.add(imageUrl);
     }
 
-    // Ajoute le post à Firestore avec la liste des URLs d'images et les nouveaux champs
+    // Créer le document du post avec les informations complètes
     await _firestore.collection('posts').add({
       'titre_prod': titre,
       'prix_prod': prix,
@@ -31,13 +48,29 @@ class FirebaseService {
       'categorie': categorie,
       'imageUrls': imageUrls,
       'timestamp': FieldValue.serverTimestamp(),
+      'userId': user.uid,
+      'userName': userName,
+      'userPhoto': userPhoto,
+      'userEmail': user.email ?? '',
     });
   }
 
-  // Méthode pour obtenir un flux de posts triés par date
+  // Méthode pour sauvegarder/mettre à jour les informations de l'utilisateur
+  static Future<void> saveUserInfo(User user) async {
+    await _firestore.collection('users').doc(user.uid).set({
+      'uid': user.uid,
+      'displayName': user.displayName ?? 'Utilisateur',
+      'email': user.email ?? '',
+      'photoURL': user.photoURL ?? '',
+      'lastUpdated': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
   static Stream<QuerySnapshot> getPostsStream() {
     return _firestore.collection('posts')
         .orderBy('timestamp', descending: true)
         .snapshots();
   }
+
+// Autres méthodes existantes...
 }
